@@ -38,6 +38,6 @@ Take a moment. Look around. Count your blessings.
 
 ---
 
-🌐 **Visit the website:** [INSERT YOUR WEBSITE LINK HERE]
+🌐 **Visit the website:** https://salimtech1.github.io/BLESSINGS/**?utm_source=chatgpt.com
 
 Made with the intention of reminding ourselves and others to be grateful.
