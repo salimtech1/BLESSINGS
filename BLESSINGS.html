@@ -1,0 +1,842 @@
+<title>Count Your Blessings</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Figtree:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap">
+<style>
+/* Layout: one column app. Hero (title left, Arabic star right), a two-tab switch, then one stage per game. */
+:root {
+  --bg: #F1F5EF;
+  --surface: #FFFFFF;
+  --ink: #11271F;
+  --muted: #51695F;
+  --line: #CBD8CF;
+  --accent: #0E6B53;
+  --accent-ink: #FFFFFF;
+  --gold: #B8801A;
+  --good: #17794F;
+  --warn: #9A5B12;
+  --t0: #FFFFFF;
+  --t1: #E4EFE8;
+  --t2: #F5ECD2;
+  --t3: #E1EAF1;
+  --shadow: rgba(17, 39, 31, .28);
+  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --arabic: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1713; --surface: #12231D; --ink: #E7F1EB; --muted: #93AEA2; --line: #24403A;
+    --accent: #43C29B; --accent-ink: #06150F; --gold: #E3B54F; --good: #4FD39A; --warn: #E3A04F;
+    --t0: #14261F; --t1: #173026; --t2: #2A2616; --t3: #162838; --shadow: rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1713; --surface: #12231D; --ink: #E7F1EB; --muted: #93AEA2; --line: #24403A;
+  --accent: #43C29B; --accent-ink: #06150F; --gold: #E3B54F; --good: #4FD39A; --warn: #E3A04F;
+  --t0: #14261F; --t1: #173026; --t2: #2A2616; --t3: #162838; --shadow: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-block: 28px 44px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+.hero > * { min-width: 0; }
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 6.4vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -.01em;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.sub { margin: 0; max-width: 54ch; color: var(--muted); font-size: 1.05rem; }
+.mark { position: relative; width: 190px; height: 190px; display: grid; place-items: center; }
+.mark svg { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--accent); opacity: .4; animation: spin 90s linear infinite; }
+.mark .ar { position: relative; margin: 0; font-family: var(--arabic); font-size: 44px; line-height: 1.3; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Tabs */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; max-width: 100%; }
+.tab { border: 0; background: transparent; color: var(--muted); font-weight: 600; padding: 10px 20px; border-radius: 999px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.panel { margin-top: 28px; }
+.lead { margin: 0 0 20px; max-width: 66ch; color: var(--muted); }
+.lead b { color: var(--ink); font-weight: 600; }
+
+.btn { border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 12px 20px; border-radius: 12px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn:hover { filter: brightness(1.06); }
+
+.prog { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--muted); font-size: .92rem; font-variant-numeric: tabular-nums; }
+.bar { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s ease; }
+
+.msg { min-height: 3em; margin: 12px 0 0; font-family: var(--display); font-style: italic; font-size: 1.1rem; }
+
+/* Shared card look (wobbly blessing boxes) */
+.gift {
+  --r: 0deg;
+  position: relative;
+  min-width: 0;
+  min-height: 104px;
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  transform: rotate(var(--r));
+  transition: transform .25s ease, box-shadow .2s ease;
+  box-shadow: 0 10px 22px -18px var(--shadow);
+}
+.gift:hover { box-shadow: 0 14px 26px -16px var(--shadow); }
+.gift.t0 { background: var(--t0); }
+.gift.t1 { background: var(--t1); }
+.gift.t2 { background: var(--t2); }
+.gift.t3 { background: var(--t3); }
+.gift.sel { box-shadow: 0 0 0 3px var(--gold); }
+.gift.enter { animation: pop .35s ease both; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.96) rotate(var(--r)); } }
+@keyframes fadein { from { opacity: 0; } }
+.is-dragging { transition: none !important; cursor: grabbing; z-index: 30; box-shadow: 0 28px 44px -18px var(--shadow); }
+
+/* Wobble for the sorting pile */
+.gift.bob { animation: wobble var(--d, 3.8s) ease-in-out var(--delay, 0s) infinite alternate, fadein .4s ease both; }
+@keyframes wobble {
+  from { transform: rotate(calc(var(--r) * -1)) translateY(0); }
+  to { transform: rotate(var(--r)) translateY(-4px); }
+}
+.gift.bob.is-dragging, .gift.bob.flying { animation: none; }
+
+/* PART 1: two jars + pile */
+.twin { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.jbox {
+  --c: var(--accent);
+  min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 10px 12px;
+  background: transparent;
+  border: 2px dashed color-mix(in srgb, var(--c) 55%, transparent);
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.jbox.yes { --c: var(--gold); }
+.jbox.test { --c: var(--accent); }
+.jbox.is-over { border-style: solid; border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--surface)); transform: scale(1.02); }
+.jbox .jsvg { display: block; }
+.jbox .jsvg svg { display: block; width: 120px; max-width: 100%; }
+.jbox.plink .jsvg { animation: plink .55s ease; }
+@keyframes plink { 30% { transform: scale(1.1) rotate(-4deg); } 65% { transform: scale(.97) rotate(2deg); } }
+.jbox .glass { fill: color-mix(in srgb, var(--c) 7%, transparent); stroke: var(--c); stroke-width: 3; }
+.jbox .lid { fill: var(--c); }
+.jbox .liq { fill: var(--c); opacity: .88; transform: translateY(240px); transition: transform .7s cubic-bezier(.3, .8, .3, 1); }
+.jbox .jt { font-family: var(--display); font-weight: 600; font-size: 1.2rem; line-height: 1.15; }
+.jbox .jt .ar { display: block; font-family: var(--arabic); font-weight: 400; font-size: 1.35rem; color: var(--c); }
+.jbox .js { color: var(--muted); font-size: .88rem; }
+.jbox .jn { font-variant-numeric: tabular-nums; font-size: .88rem; font-weight: 600; }
+
+.pile { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin-top: 14px; padding-block: 6px; }
+
+.end { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px; }
+.end h2 { margin: 0 0 8px; font-family: var(--display); font-weight: 600; font-size: 1.8rem; line-height: 1.15; }
+.end p { max-width: 64ch; }
+.lists { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.lists > div { min-width: 0; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); }
+.lists .gold { background: var(--t2); }
+.lists .green { background: var(--t1); }
+.lists h3 { margin: 0 0 6px; font-family: var(--display); font-size: 1.15rem; font-weight: 600; }
+.lists ul { margin: 0; padding-left: 18px; }
+.lists li { margin: 4px 0; }
+.quote { margin: 18px 0; padding-left: 16px; border-left: 3px solid var(--gold); max-width: 64ch; }
+.quote small { display: block; color: var(--muted); margin-top: 4px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.note { color: var(--muted); font-size: .9rem; }
+
+/* PART 2: Alhamdulillah jar */
+.thanks { display: grid; grid-template-columns: 270px 1fr; gap: 32px; align-items: start; }
+.thanks > * { min-width: 0; }
+.jarcol { position: sticky; top: 12px; }
+.jar { position: relative; padding: 10px; border: 2px dashed transparent; border-radius: 24px; transition: background .15s, border-color .15s; }
+.jar.is-over { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 13%, transparent); }
+.jar svg { display: block; width: 100%; max-width: 220px; margin: 0 auto; }
+.jar .glass { fill: color-mix(in srgb, var(--accent) 7%, transparent); stroke: var(--accent); stroke-width: 3; }
+.jar .lid { fill: var(--accent); }
+#liquid { fill: var(--gold); opacity: .88; transform: translateY(240px); transition: transform .8s cubic-bezier(.3, .8, .3, 1); }
+.float { position: absolute; left: 50%; top: 34%; font-family: var(--arabic); font-size: 1.7rem; color: var(--gold); pointer-events: none; animation: floatUp 1.7s ease-out forwards; }
+@keyframes floatUp {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  15% { opacity: 1; }
+  to { opacity: 0; transform: translate(-50%, -80px); }
+}
+.count { margin-top: 10px; font-variant-numeric: tabular-nums; }
+.count .n { font-family: var(--display); font-weight: 600; font-size: 2.6rem; line-height: 1; }
+.count .l { display: block; color: var(--muted); font-size: .92rem; margin-top: 2px; }
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.tools { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; max-width: 70ch; }
+footer p { margin: 0 0 6px; }
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; }
+  .mark { width: 120px; height: 120px; order: -1; }
+  .mark .ar { font-size: 30px; }
+  .thanks { grid-template-columns: 1fr; gap: 18px; }
+  .jarcol { position: static; display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+  .jar svg { max-width: 140px; }
+  .tray { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .pile { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lists { grid-template-columns: 1fr; }
+  .jbox .jsvg svg { width: 96px; }
+  .jbox .jt { font-size: 1.05rem; }
+}
+@media (max-width: 420px) {
+  .tray { grid-template-columns: 1fr; }
+  .gift { padding: 14px 12px; font-size: .95rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1>Count Your Blessings</h1>
+      <p class="sub">Two small games for a grateful heart. Sort blessings into what you have and what is a test, then fill a jar with thanks.</p>
+      <div class="tabs" role="tablist" aria-label="Choose a game">
+        <button class="tab" id="tabTest" role="tab" aria-selected="true" aria-controls="modeTest">Test or Thanks</button>
+        <button class="tab" id="tabThanks" role="tab" aria-selected="false" aria-controls="modeThanks">Alhamdulillah</button>
+      </div>
+    </div>
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="19" y="19" width="62" height="62"/>
+        <rect x="19" y="19" width="62" height="62" transform="rotate(45 50 50)"/>
+        <rect x="31" y="31" width="38" height="38" transform="rotate(22.5 50 50)"/>
+      </svg>
+      <p class="ar" lang="ar" dir="rtl">الحمد لله</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- GAME 1: TEST OR THANKS -->
+    <section class="panel" id="modeTest" role="tabpanel" aria-labelledby="tabTest">
+      <p class="lead">Read each blessing. If you <b>have it</b>, drag it into the <b>Alhamdulillah</b> jar. If you <b>do not have it</b>, or it does not match your life, drag it into the jar of <b>a test from Allah</b>. Be honest, nobody is judging.</p>
+
+      <div id="sortPlay">
+        <div class="prog"><span id="progText">14 blessings left</span><div class="bar"><i id="barFill"></i></div></div>
+        <div class="twin">
+          <button class="jbox yes" id="jarYes" type="button" aria-label="Alhamdulillah jar, I have this">
+            <span class="jsvg"></span>
+            <span class="jt">Alhamdulillah<span class="ar" lang="ar">الحمد لله</span></span>
+            <span class="js">I have this</span>
+            <span class="jn"><span id="cYes">0</span> in the jar</span>
+          </button>
+          <button class="jbox test" id="jarTest" type="button" aria-label="A test from Allah jar, I do not have this">
+            <span class="jsvg"></span>
+            <span class="jt">A test from Allah<span class="ar" lang="ar">ابتلاء</span></span>
+            <span class="js">I do not have this</span>
+            <span class="jn"><span id="cTest">0</span> in the jar</span>
+          </button>
+        </div>
+        <p class="msg" id="sortMsg" aria-live="polite">Drag a blessing into a jar. Or tap a blessing, then tap a jar.</p>
+        <div class="pile" id="pile"></div>
+      </div>
+
+      <div class="end" id="sortEnd" hidden>
+        <h2 id="endHead">Round complete</h2>
+        <div class="lists">
+          <div class="gold"><h3>Alhamdulillah</h3><ul id="listYes"></ul></div>
+          <div class="green"><h3>A test from Allah</h3><ul id="listTest"></ul></div>
+        </div>
+        <p id="endBody"></p>
+        <div class="quote">
+          The Prophet ﷺ described the believer's situation as always good. When ease comes and he is thankful, that is good for him. When hardship comes and he is patient, that is good for him.
+          <small>Reported in Sahih Muslim</small>
+        </div>
+        <div class="row">
+          <button class="btn" id="againBtn" type="button">New round</button>
+          <button class="btn ghost" id="copyBtn" type="button">Copy my lists</button>
+          <button class="btn ghost" id="toThanks" type="button">Fill the Alhamdulillah jar</button>
+          <span class="note" id="copyNote" aria-live="polite"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME 2: ALHAMDULILLAH -->
+    <section class="panel" id="modeThanks" role="tabpanel" aria-labelledby="tabThanks" hidden>
+      <p class="lead">Which of your Lord's favors will you deny? <small style="color:var(--muted)">(Quran 55:13)</small> Drag each blessing into the jar and say <b>Alhamdulillah</b>. Tapping a card works too.</p>
+      <div class="thanks">
+        <div class="jarcol">
+          <div class="jar" id="jar" aria-label="Alhamdulillah jar, drop blessings here">
+            <svg viewBox="0 0 200 250" role="img" aria-label="A jar filling with gold light">
+              <defs>
+                <clipPath id="jarClip"><path d="M62 38H138V58C138 68 164 76 164 106V200C164 224 150 240 128 240H72C50 240 36 224 36 200V106C36 76 62 68 62 58Z"/></clipPath>
+              </defs>
+              <g clip-path="url(#jarClip)"><rect id="liquid" x="20" y="0" width="160" height="260"/></g>
+              <path class="glass" d="M62 38H138V58C138 68 164 76 164 106V200C164 224 150 240 128 240H72C50 240 36 224 36 200V106C36 76 62 68 62 58Z"/>
+              <rect class="lid" x="54" y="20" width="92" height="18" rx="6"/>
+            </svg>
+          </div>
+          <div>
+            <div class="count"><span class="n" id="cTotal">0</span><span class="l">blessings given thanks for</span></div>
+            <div class="count" style="margin-top:8px"><span class="n" id="cJars" style="font-size:1.6rem">0</span><span class="l">jars filled</span></div>
+            <p class="msg" id="msg" aria-live="polite">Pick a blessing and drop it in.</p>
+          </div>
+        </div>
+        <div>
+          <div class="tray" id="tray"></div>
+          <div class="tools"><button class="btn ghost" id="shuffleBtn" type="button">Show different blessings</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>If you tried to count Allah's favors, you could never finish them. (Quran 14:34)</p>
+    <p>These reflections are written as reminders. Please check any religious wording with a teacher you trust.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- DATA: add your own lines to these lists ---------- */
+
+  // PART 1: general blessings people sort into "I have it" or "a test from Allah".
+  var SORT = [
+    // food and home
+    "You have food in the fridge.",
+    "You ate a full meal today.",
+    "You have clean drinking water.",
+    "You have a home.",
+    "You have a bed to sleep in.",
+    "You have a warm room in winter.",
+    "You have electricity at home.",
+    "You have a bathroom with running water.",
+    "You have clothes for every season.",
+    "You have shoes that fit.",
+    "You have a door that locks.",
+    "You have a kitchen to cook in.",
+    "You have a quiet place to sleep.",
+    // body
+    "You can see.",
+    "You can hear.",
+    "You can walk without help.",
+    "You can speak clearly.",
+    "You have two working hands.",
+    "You woke up without pain.",
+    "You slept well last night.",
+    "You have medicine when you are sick.",
+    "You can see a doctor when you need one.",
+    "Your heart beats without effort.",
+    "You can taste your food.",
+    // people
+    "You have a family who loves you.",
+    "You have a close friend.",
+    "You have someone you can call when you are sad.",
+    "You have people who pray for you.",
+    "You have a neighbor who greets you.",
+    "You have a teacher who believes in you.",
+    "You have someone to share good news with.",
+    // opportunity
+    "You can read and write.",
+    "You can study at a school or university.",
+    "You have a phone.",
+    "You have a laptop or computer.",
+    "You have internet access.",
+    "You have a job or a source of income.",
+    "You have money to cover your needs.",
+    "You can save a little each month.",
+    "You can travel when you need to.",
+    "You have free time every day.",
+    // safety and freedom
+    "You feel safe where you live.",
+    "You sleep without fear.",
+    "You are free to practice your religion.",
+    "You are not hungry tonight.",
+    "You can walk outside at night and feel safe.",
+    "Your city has hospitals and schools.",
+    // deen
+    "You have a mosque nearby.",
+    "You can hear the adhan.",
+    "You can read the Qur'an.",
+    "You can fast in Ramadan.",
+    "You can pray on time.",
+    "You have the means to learn your religion.",
+    // joy
+    "You have something to look forward to.",
+    "You laughed today.",
+    "You have hobbies you enjoy.",
+    "You have a goal you are working toward.",
+    "You have a calm mind most days.",
+    "You can sit under the sun or the stars."
+  ];
+
+  // PART 2: the Alhamdulillah jar.
+  var BLESSINGS = [
+    // body
+    "You woke up this morning and your eyes could see the sky.",
+    "You can hear the voices of the people you love.",
+    "Your heart has been beating all day without you thinking about it.",
+    "You can breathe without any effort.",
+    "You have two hands that can write, hold and build.",
+    "Your legs carry you wherever you need to go.",
+    "You can taste your food and enjoy it.",
+    "You can smell fresh bread and rain.",
+    "You can speak and be understood.",
+    "Your mind can learn new things.",
+    "You slept last night and woke up again.",
+    "Your body healed from every cold and scrape you have ever had.",
+    "You can laugh until your stomach hurts.",
+    "You can cry, and the tears bring relief.",
+    "You have a memory full of good moments.",
+    "You can feel the warmth of a hug.",
+    "You have teeth to eat with and a tongue to say thanks.",
+    "Your lungs filled with air again and again today.",
+    // home
+    "You have a roof over your head tonight.",
+    "You have a bed with a blanket.",
+    "You have a door that you can lock.",
+    "You have light at the flip of a switch.",
+    "Clean water comes out of your tap.",
+    "You can take a warm shower whenever you want.",
+    "Your room is warm while winter freezes outside.",
+    "You have a fridge with food in it.",
+    "You have clothes to choose from.",
+    "You have shoes on your feet.",
+    "You have a place that is yours to return to.",
+    "You have a bathroom inside your home.",
+    "You have a comfortable chair to sit in.",
+    "You have a quiet room to think in.",
+    // food
+    "You can eat when you are hungry.",
+    "You can drink water when you are thirsty.",
+    "Someone cooked for you today.",
+    "You tasted something delicious this week.",
+    "You have bread on the table.",
+    "You have hot tea after a long day.",
+    "You have ice cold water on a hot day.",
+    "You can break your fast with dates and water.",
+    "You have more than one kind of food to choose from.",
+    // deen
+    "You have the Qur'an in your pocket.",
+    "You can pray wherever you want.",
+    "You can hear the adhan.",
+    "You know that Allah is the Most Merciful.",
+    "You can make dua at any hour with no appointment.",
+    "You can ask for forgiveness and start again.",
+    "You still have time to repent today.",
+    "Allah has veiled many of your mistakes from other people.",
+    "You have Ramadan to look forward to every year.",
+    "You know the difference between right and wrong.",
+    "You have a heart that can feel guilt and turn back.",
+    "You can learn your religion in your own language.",
+    "You were given another day to do good.",
+    // people
+    "You have a family who loves you, even from far away.",
+    "Someone may be making dua for you right now.",
+    "You have a friend who answers your calls.",
+    "You have a voice to call and hear from home.",
+    "You have a teacher who explains patiently.",
+    "You have a classmate who shares notes with you.",
+    "A stranger held the door for you.",
+    "Someone smiled at you today.",
+    "You have people to miss, which means you have people who matter.",
+    "You have someone who forgives you.",
+    "You have a brother or sister in faith nearby.",
+    "You have a neighbor who greets you.",
+    "Someone thought of you today.",
+    "You have someone to share good news with.",
+    // learning and tools
+    "You can study at a university.",
+    "You can read and write.",
+    "You can learn programming for free on the internet.",
+    "You have a laptop that turns on.",
+    "You have working internet.",
+    "You can ask a question and get an answer in seconds.",
+    "You carry a library of human knowledge in your pocket.",
+    "You can build things with your own mind.",
+    "You fixed a bug, and it felt amazing.",
+    "You can keep learning math even when it is hard, and the struggle means you are growing.",
+    "You can watch a lesson again and again until it makes sense.",
+    "Your code finally compiled.",
+    "Free open-source tools exist because people chose to share.",
+    "You have a charger and a power outlet.",
+    "You have a goal that excites you.",
+    "You can start a new project today.",
+    // nature
+    "You saw the sky today.",
+    "The sun rose again right on time.",
+    "You can feel rain on your face.",
+    "You can breathe fresh air.",
+    "Trees quietly make the air you breathe.",
+    "You can see the moon and the stars.",
+    "A bird sang near you today.",
+    "You can see flowers growing.",
+    "The seasons change, so no season lasts forever.",
+    "The ground holds you up with every step.",
+    "You have seen snow fall and felt your heart go quiet.",
+    "You can watch the sunset.",
+    // safety, time, freedom
+    "You felt safe walking home.",
+    "You live somewhere without the sound of sirens at night.",
+    "You are free to learn what you like.",
+    "You have time to fix what you got wrong.",
+    "You can choose what to do with your day.",
+    "You can travel to see the people you miss.",
+    "You can ride public transport to wherever you need to go.",
+    "You have money for your needs, even if it is small.",
+    "You can say no to something harmful.",
+    "You have a future that is still unwritten.",
+    // small joys
+    "You have a warm blanket on a cold night.",
+    "You smelled a meal cooking in the kitchen.",
+    "You had a good conversation after a long day.",
+    "You laughed with friends.",
+    "You got a text from home.",
+    "You finished an assignment and felt the relief.",
+    "A hard exam finished and you are still standing.",
+    "You had a good night of sleep.",
+    "You felt calm for a moment today.",
+    "You noticed something beautiful.",
+    "You were handed something you did not ask for and needed.",
+    "You heard good news recently."
+  ];
+
+  var PHRASES = [
+    "Alhamdulillah.",
+    "Alhamdulillahi rabbil 'alamin.",
+    "Alhamdulillah 'ala kulli hal.",
+    "Alhamdulillah for this one too."
+  ];
+
+  var TEST_MSGS = [
+    "A test, not a punishment. Be patient and keep making dua.",
+    "Not having this does not mean Allah has forgotten you.",
+    "You can still work toward this. Do your part and leave the rest to Allah.",
+    "Sabr. Your patience is seen.",
+    "Keep asking Allah. He loves to be asked.",
+    "Patience is rewarded, even when the wait is long."
+  ];
+
+  var JAR_D = "M62 38H138V58C138 68 164 76 164 106V200C164 224 150 240 128 240H72C50 240 36 224 36 200V106C36 76 62 68 62 58Z";
+
+  /* ---------- helpers ---------- */
+  var $ = function (s) { return document.querySelector(s); };
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function hit(el, x, y) {
+    var r = el.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  }
+
+  var store = { total: 0, jars: 0, fill: 0 };
+  try {
+    var saved = JSON.parse(localStorage.getItem("ycb:v1"));
+    if (saved && typeof saved.total === "number") {
+      store.total = saved.total | 0;
+      store.jars = saved.jars | 0;
+      store.fill = saved.fill | 0;
+    }
+  } catch (e) {}
+  function persist() { try { localStorage.setItem("ycb:v1", JSON.stringify(store)); } catch (e) {} }
+
+  /* Pointer based dragging so it works with mouse, pen and touch. */
+  function makeDraggable(el, getTargets, opts) {
+    var sx = 0, sy = 0, pid = null, moving = false, over = null;
+    el._pos = { x: 0, y: 0 };
+    el.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (el._done) return;
+      pid = e.pointerId; sx = e.clientX; sy = e.clientY; moving = false;
+      el._pos = { x: 0, y: 0 };
+      try { el.setPointerCapture(pid); } catch (err) {}
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moving && Math.hypot(dx, dy) > 6) { moving = true; el.classList.add("is-dragging"); }
+      if (!moving) return;
+      el._pos = { x: dx, y: dy };
+      el.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + (dx / 40) + "deg) scale(1.03)";
+      var found = null, list = getTargets();
+      for (var i = 0; i < list.length; i++) { if (hit(list[i], e.clientX, e.clientY)) { found = list[i]; break; } }
+      if (found !== over) {
+        if (over) over.classList.remove("is-over");
+        over = found;
+        if (over) over.classList.add("is-over");
+      }
+    });
+    function end(e, cancelled) {
+      if (e.pointerId !== pid) return;
+      pid = null;
+      el.classList.remove("is-dragging");
+      var target = over;
+      if (over) { over.classList.remove("is-over"); over = null; }
+      var consumed = false;
+      if (!cancelled && moving && target && opts.onDrop) consumed = opts.onDrop(target) === true;
+      else if (!cancelled && !moving && opts.onTap) opts.onTap();
+      if (!consumed) { el.style.transform = ""; el._pos = { x: 0, y: 0 }; }
+      moving = false;
+    }
+    el.addEventListener("pointerup", function (e) { end(e, false); });
+    el.addEventListener("pointercancel", function (e) { end(e, true); });
+    el.addEventListener("keydown", function (e) {
+      if ((e.key === "Enter" || e.key === " ") && opts.onTap) { e.preventDefault(); opts.onTap(); }
+    });
+  }
+
+  /* ---------- tabs ---------- */
+  var tabTest = $("#tabTest"), tabThanks = $("#tabThanks");
+  var modeTest = $("#modeTest"), modeThanks = $("#modeThanks");
+  function setMode(m) {
+    var isTest = m !== "thanks";
+    modeTest.hidden = !isTest;
+    modeThanks.hidden = isTest;
+    tabTest.setAttribute("aria-selected", String(isTest));
+    tabThanks.setAttribute("aria-selected", String(!isTest));
+    var h = isTest ? "test" : "thanks";
+    if (location.hash !== "#" + h) { try { location.hash = h; } catch (e) {} }
+    if (!isTest) renderJar();
+  }
+  tabTest.addEventListener("click", function () { setMode("test"); });
+  tabThanks.addEventListener("click", function () { setMode("thanks"); });
+  window.addEventListener("hashchange", function () { setMode(location.hash === "#thanks" ? "thanks" : "test"); });
+
+  /* ---------- GAME 1: TEST OR THANKS ---------- */
+  var ROUND = 14, PILE = 6;
+  var jarYes = $("#jarYes"), jarTest = $("#jarTest"), pile = $("#pile"), sortMsg = $("#sortMsg");
+  var sortPlay = $("#sortPlay"), sortEnd = $("#sortEnd");
+  var progText = $("#progText"), barFill = $("#barFill");
+  var sdeck = [], placed = { yes: [], test: [] }, sel = null;
+
+  function jarSvg(id) {
+    return '<svg viewBox="0 0 200 250" aria-hidden="true"><defs><clipPath id="clip-' + id + '"><path d="' + JAR_D + '"/></clipPath></defs>' +
+      '<g clip-path="url(#clip-' + id + ')"><rect class="liq" x="20" y="0" width="160" height="260"/></g>' +
+      '<path class="glass" d="' + JAR_D + '"/><rect class="lid" x="54" y="20" width="92" height="18" rx="6"/></svg>';
+  }
+  jarYes.querySelector(".jsvg").innerHTML = jarSvg("yes");
+  jarTest.querySelector(".jsvg").innerHTML = jarSvg("test");
+
+  function setJar(which) {
+    var box = which === "yes" ? jarYes : jarTest;
+    var n = placed[which].length;
+    box.querySelector(".liq").style.transform = "translateY(" + (240 - (n / ROUND) * 172) + "px)";
+    $(which === "yes" ? "#cYes" : "#cTest").textContent = n;
+  }
+  function sorted() { return placed.yes.length + placed.test.length; }
+  function updateProg() {
+    var left = ROUND - sorted();
+    progText.textContent = left + (left === 1 ? " blessing left" : " blessings left");
+    barFill.style.width = (sorted() / ROUND * 100) + "%";
+  }
+  function refill() {
+    while (pile.children.length < PILE && sdeck.length) pile.appendChild(makeSortCard(sdeck.pop()));
+  }
+  function startSort() {
+    sdeck = shuffle(SORT.slice()).slice(0, ROUND);
+    placed = { yes: [], test: [] };
+    sel = null;
+    pile.textContent = "";
+    sortEnd.hidden = true; sortPlay.hidden = false;
+    $("#copyNote").textContent = "";
+    setJar("yes"); setJar("test");
+    sortMsg.textContent = "Drag a blessing into a jar. Or tap a blessing, then tap a jar.";
+    refill(); updateProg();
+  }
+  function place(card, which) {
+    if (card._done) return;
+    card._done = true;
+    if (sel === card) sel = null;
+    card.classList.remove("sel");
+    card.classList.add("flying");
+    card.style.pointerEvents = "none";
+    var jb = which === "yes" ? jarYes : jarTest;
+    var cr = card.getBoundingClientRect(), jr = jb.querySelector("svg").getBoundingClientRect();
+    var dx = (jr.left + jr.width / 2) - (cr.left + cr.width / 2);
+    var dy = (jr.top + jr.height * 0.45) - (cr.top + cr.height / 2);
+    card.style.transition = "transform .45s cubic-bezier(.5,0,.9,.5), opacity .45s ease";
+    card.style.transform = "translate(" + (card._pos.x + dx) + "px," + (card._pos.y + dy) + "px) scale(.12)";
+    card.style.opacity = "0";
+    setTimeout(function () {
+      card.remove();
+      placed[which].push(card._text);
+      if (which === "yes") { store.total++; persist(); renderJar(); }
+      setJar(which);
+      jb.classList.remove("plink"); void jb.offsetWidth; jb.classList.add("plink");
+      sortMsg.textContent = which === "yes" ? pick(PHRASES) : pick(TEST_MSGS);
+      refill(); updateProg();
+      if (sorted() >= ROUND) setTimeout(finishSort, 800);
+    }, 430);
+  }
+  function makeSortCard(text) {
+    var c = document.createElement("div");
+    c.className = "gift bob t" + Math.floor(Math.random() * 4);
+    var r = 1.2 + Math.random() * 1.6;
+    c.style.setProperty("--r", (Math.random() < 0.5 ? -r : r).toFixed(1) + "deg");
+    c.style.setProperty("--d", (3 + Math.random() * 2).toFixed(1) + "s");
+    c.style.setProperty("--delay", "-" + (Math.random() * 3).toFixed(1) + "s");
+    c._text = text;
+    c.tabIndex = 0;
+    c.setAttribute("role", "button");
+    c.setAttribute("aria-label", "Blessing: " + text + ". Press Enter to select, then choose a jar.");
+    c.textContent = text;
+    makeDraggable(c, function () { return [jarYes, jarTest]; }, {
+      onDrop: function (t) { place(c, t === jarYes ? "yes" : "test"); return true; },
+      onTap: function () {
+        if (sel === c) { c.classList.remove("sel"); sel = null; return; }
+        if (sel) sel.classList.remove("sel");
+        sel = c; c.classList.add("sel");
+        sortMsg.textContent = "Now tap a jar for this one.";
+      }
+    });
+    return c;
+  }
+  jarYes.addEventListener("click", function () {
+    if (sel) place(sel, "yes"); else sortMsg.textContent = "Tap a blessing first, or drag it here.";
+  });
+  jarTest.addEventListener("click", function () {
+    if (sel) place(sel, "test"); else sortMsg.textContent = "Tap a blessing first, or drag it here.";
+  });
+
+  function fillList(id, items) {
+    var ul = $(id);
+    ul.textContent = "";
+    if (!items.length) { var e = document.createElement("li"); e.textContent = "Nothing here this round."; ul.appendChild(e); return; }
+    items.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+  }
+  function finishSort() {
+    sortPlay.hidden = true; sortEnd.hidden = false;
+    var y = placed.yes.length, t = placed.test.length;
+    $("#endHead").textContent = "You said Alhamdulillah for " + y + " of " + ROUND + " blessings";
+    fillList("#listYes", placed.yes);
+    fillList("#listTest", placed.test);
+    $("#endBody").textContent = t > 0
+      ? "The other " + t + " are tests. A test met with patience is rewarded, and you can still work toward some of them. Even the blessings you have are a test, of how thankful you are and what you do with them."
+      : "You have all of them. Remember that thanks is shown by what you do with a blessing, not only by what you say.";
+  }
+  $("#againBtn").addEventListener("click", startSort);
+  $("#toThanks").addEventListener("click", function () { setMode("thanks"); });
+  $("#copyBtn").addEventListener("click", function () {
+    var txt = "Alhamdulillah:\n" + (placed.yes.length ? placed.yes.map(function (s) { return "- " + s; }).join("\n") : "- none") +
+      "\n\nA test from Allah:\n" + (placed.test.length ? placed.test.map(function (s) { return "- " + s; }).join("\n") : "- none");
+    var note = $("#copyNote");
+    function done(ok) { note.textContent = ok ? "Copied." : "Copy did not work here. Select the lists and copy them by hand."; }
+    try { navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); }); }
+    catch (e) { done(false); }
+  });
+
+  /* ---------- GAME 2: ALHAMDULILLAH ---------- */
+  var CAP = 20, TRAY = 6;
+  var tray = $("#tray"), jar = $("#jar"), liquid = $("#liquid"), msg = $("#msg");
+  var deck = [];
+  function nextBlessing() {
+    if (!deck.length) deck = shuffle(BLESSINGS.slice());
+    return deck.pop();
+  }
+  function renderJar() {
+    liquid.style.transform = "translateY(" + (240 - (store.fill / CAP) * 172) + "px)";
+    $("#cTotal").textContent = store.total.toLocaleString();
+    $("#cJars").textContent = store.jars.toLocaleString();
+  }
+  function floatText() {
+    var f = document.createElement("span");
+    f.className = "float"; f.lang = "ar"; f.textContent = "الحمد لله";
+    f.addEventListener("animationend", function () { f.remove(); });
+    jar.appendChild(f);
+    setTimeout(function () { f.remove(); }, 2200);
+  }
+  function addThanks() {
+    store.total++; store.fill++;
+    floatText();
+    if (store.fill >= CAP) {
+      store.jars++;
+      msg.textContent = "Your jar is full. Say it once more, slowly, with your heart.";
+      renderJar(); persist();
+      setTimeout(function () { store.fill = 0; renderJar(); persist(); }, 2000);
+    } else {
+      msg.textContent = pick(PHRASES);
+      renderJar(); persist();
+    }
+  }
+  function swallow(card) {
+    if (card._done) return;
+    card._done = true;
+    card.style.pointerEvents = "none";
+    var cr = card.getBoundingClientRect(), jr = jar.getBoundingClientRect();
+    var dx = (jr.left + jr.width / 2) - (cr.left + cr.width / 2);
+    var dy = (jr.top + jr.height * 0.4) - (cr.top + cr.height / 2);
+    card.style.transition = "transform .45s cubic-bezier(.5,0,.9,.5), opacity .45s ease";
+    card.style.transform = "translate(" + (card._pos.x + dx) + "px," + (card._pos.y + dy) + "px) scale(.12)";
+    card.style.opacity = "0";
+    setTimeout(function () {
+      addThanks();
+      card.replaceWith(makeCard(nextBlessing()));
+    }, 420);
+  }
+  function makeCard(text) {
+    var c = document.createElement("div");
+    c.className = "gift enter t" + Math.floor(Math.random() * 4);
+    c.style.setProperty("--r", (Math.random() * 3 - 1.5).toFixed(1) + "deg");
+    c.tabIndex = 0;
+    c.setAttribute("role", "button");
+    c.setAttribute("aria-label", "Give thanks for: " + text);
+    c.textContent = text;
+    makeDraggable(c, function () { return [jar]; }, {
+      onDrop: function () { swallow(c); return true; },
+      onTap: function () { swallow(c); }
+    });
+    return c;
+  }
+  function fillTray() {
+    tray.textContent = "";
+    for (var i = 0; i < TRAY; i++) tray.appendChild(makeCard(nextBlessing()));
+  }
+  $("#shuffleBtn").addEventListener("click", fillTray);
+
+  /* ---------- start ---------- */
+  renderJar();
+  fillTray();
+  startSort();
+  setMode(location.hash === "#thanks" ? "thanks" : "test");
+})();
+</script>
